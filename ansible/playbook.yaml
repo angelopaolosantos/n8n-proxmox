@@ -21,3 +21,11 @@
     - name: Run n8n
       shell:
         cmd: pm2 start n8n
+
+    - name: Run n8n on reboot
+      shell:
+        cmd: pm2 startup
+
+    - name: Save current PM2 process list
+      shell:
+        cmd: pm2 save
