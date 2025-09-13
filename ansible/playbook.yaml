@@ -1,31 +1,49 @@
 ---
-# file: playbook.yaml
-- name: Install n8n on Ubuntu
-  hosts: all
-  become: yes  # Use sudo to install packages
+- name: Deploy n8n with Docker Compose
+  hosts: n8n
+  become: true # Run with sudo privileges
+
   tasks:
-    - name: Node.js install script from NodeSource PPA (personal package archive) 
-      shell:
-        cmd: curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
-    - name: Update nodejs
+    - name: Install required packages
       apt:
-        update_cache: yes
-        pkg:
-          - nodejs
-          - npm
-    
-    - name: Install n8n via npm
-      shell:
-        cmd: npm install -g n8n pm2
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+        update_cache: true
+    - name: Add Docker’s official GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu focal stable
+        state: present
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: latest
+        update_cache: true
 
-    - name: Run n8n
-      shell:
-        cmd: pm2 start n8n
+    - name: Create n8n data directory
+      ansible.builtin.file:
+        path: /opt/n8n/data
+        state: directory
+        mode: '0755'
 
-    - name: Run n8n on reboot
-      shell:
-        cmd: pm2 startup
+    - name: Copy docker-compose.yml
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/files/docker-compose.yml"
+        dest: /opt/n8n/docker-compose.yml
 
-    - name: Save current PM2 process list
-      shell:
-        cmd: pm2 save
+    - name: Start n8n containers
+      community.docker.docker_compose_v2:
+        project_src: /opt/n8n
+        state: present
+      register: output
+
+    - name: Show results
+      ansible.builtin.debug:
+        var: output

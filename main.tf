@@ -105,6 +105,8 @@ resource "ansible_host" "n8n" {
     private_ip                   = var.container_ips
   }
 
+  groups = ["n8n"]
+
 }
 
 # Export Terraform variable values to an Ansible var_file

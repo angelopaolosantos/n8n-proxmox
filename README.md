@@ -18,7 +18,7 @@ terraform apply
 ### Run Ansible Playbook
 ```
 export ANSIBLE_HOST_KEY_CHECKING=False
-ansible-playbook -i ./ansible/inventory.yaml ./ansible/playbook.yaml
+ansible-playbook -i ./ansible/inventory.yaml ./ansible/playbook.yaml -vvvv
 ```
 
 ### SSH into container
